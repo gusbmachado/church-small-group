@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="144" height="144" fill="#1a1a2e"/>
+  
+  <!-- Cross -->
+  <g transform="translate(72, 72)">
+    <!-- Vertical bar -->
+    <rect x="-11.52" y="-50.4" width="23.04" height="100.8" fill="#F4E3C1" rx="2.88"/>
+    <!-- Horizontal bar -->
+    <rect x="-36" y="-11.52" width="72" height="23.04" fill="#F4E3C1" rx="2.88"/>
+  </g>
+  
+  <!-- Border -->
+  <rect x="2" y="2" width="140" height="140" fill="none" stroke="#F4E3C1" stroke-width="3" rx="7.2"/>
+</svg>
