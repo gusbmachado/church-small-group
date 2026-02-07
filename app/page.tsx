@@ -1,15 +1,53 @@
-import { getCurrentUser } from "@/lib/firebase/server"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useAuth } from "@/lib/firebase/auth-context"
 import { HomeClient } from "@/components/home-client"
-import { mockGroups } from "@/lib/data"
+import { getAllGroups, getActiveAnnouncements } from "@/lib/firebase/firestore"
+import type { SmallGroup, Announcement } from "@/lib/types"
+import { Spinner } from "@/components/ui/spinner"
 
-export default async function HomePage() {
-  // Get current user from Firebase
-  const user = await getCurrentUser()
+export default function HomePage() {
+  const { user, profile, loading: authLoading } = useAuth()
+  const [groups, setGroups] = useState<SmallGroup[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Use mock data for groups
-  const groups = mockGroups
+  useEffect(() => {
+    async function load() {
+      try {
+        const [g, a] = await Promise.all([getAllGroups(), getActiveAnnouncements()])
+        setGroups(g)
+        setAnnouncements(a)
+      } catch (error) {
+        console.error("Error loading data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
 
-  const googleMapsApiKey = process.env.NEXT_PUBLIC_FIREBASE_APP_ID || ""
+  if (loading || authLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Spinner className="mx-auto" />
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    )
+  }
 
-  return <HomeClient initialGroups={groups || []} user={user} googleMapsApiKey={googleMapsApiKey} />
+  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
+
+  return (
+    <HomeClient
+      initialGroups={groups}
+      user={user}
+      profile={profile}
+      announcements={announcements}
+      googleMapsApiKey={googleMapsApiKey}
+    />
+  )
 }

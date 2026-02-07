@@ -4,6 +4,29 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import type { SmallGroup } from "@/lib/types"
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader"
 
+declare global {
+  namespace google {
+    namespace maps {
+      class Map {
+        constructor(element: HTMLElement, options: any)
+        panTo(latLng: { lat: number; lng: number }): void
+      }
+      namespace marker {
+        class AdvancedMarkerElement {
+          constructor(options: any)
+          map: any
+          addListener(eventName: string, handler: () => void): void
+        }
+      }
+      class InfoWindow {
+        constructor(options: any)
+        open(map: Map, marker: marker.AdvancedMarkerElement): void
+        close(): void
+      }
+    }
+  }
+}
+
 interface GoogleMapProps {
   groups: SmallGroup[]
   selectedGroup: SmallGroup | null
@@ -26,8 +49,7 @@ export function GoogleMap({ groups, selectedGroup, onSelectGroup, apiKey }: Goog
       try {
         // Configure the loader
         setOptions({
-          apiKey,
-          version: "weekly",
+          key: apiKey,
         })
 
         // Import required libraries
@@ -56,12 +78,12 @@ export function GoogleMap({ groups, selectedGroup, onSelectGroup, apiKey }: Goog
     const mapInstance = new google.maps.Map(mapRef.current, {
       center,
       zoom: 14,
-      mapId: "church_groups_map",
       disableDefaultUI: false,
       zoomControl: true,
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: true,
+      mapId: "61c9225498f2a054bdbdf759",
       styles: [
         {
           featureType: "poi",

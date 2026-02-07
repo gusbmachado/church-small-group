@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import type { SmallGroup } from "@/lib/types"
+import type { SmallGroup, Announcement, UserProfile } from "@/lib/types"
 import type { User } from "firebase/auth"
 import { Header } from "@/components/header"
 import { FilterBar } from "@/components/filter-bar"
@@ -11,25 +11,27 @@ import { GroupsList } from "@/components/groups-list"
 import { GroupDetailsPanel } from "@/components/group-details-panel"
 import { ManagementDashboard } from "@/components/management-dashboard"
 import { MobileNav } from "@/components/mobile-nav"
+import { AnnouncementsBanner } from "@/components/announcements-banner"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 
 interface HomeClientProps {
   initialGroups: SmallGroup[]
   user: User | null
+  profile: UserProfile | null
+  announcements: Announcement[]
   googleMapsApiKey: string
 }
 
-export function HomeClient({ initialGroups, user, googleMapsApiKey }: HomeClientProps) {
+export function HomeClient({ initialGroups, user, profile, announcements, googleMapsApiKey }: HomeClientProps) {
   const [groups, setGroups] = useState<SmallGroup[]>(initialGroups)
   const [selectedGroup, setSelectedGroup] = useState<SmallGroup | null>(null)
   const [managingGroup, setManagingGroup] = useState<SmallGroup | null>(null)
   const [mobileView, setMobileView] = useState<"map" | "list">("map")
 
-  // Filters
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("All Categories")
+  const [selectedCategory, setSelectedCategory] = useState("Todas Categorias")
   const [selectedGender, setSelectedGender] = useState("all")
-  const [selectedAgeRange, setSelectedAgeRange] = useState("All Ages")
+  const [selectedAgeRange, setSelectedAgeRange] = useState("Todas Idades")
 
   const filteredGroups = useMemo(() => {
     return groups.filter((group) => {
@@ -41,19 +43,15 @@ export function HomeClient({ initialGroups, user, googleMapsApiKey }: HomeClient
       ) {
         return false
       }
-
-      if (selectedCategory !== "All Categories" && group.category !== selectedCategory && !group.is_church) {
+      if (selectedCategory !== "Todas Categorias" && group.category !== selectedCategory && !group.is_church) {
         return false
       }
-
       if (selectedGender !== "all" && group.gender !== selectedGender && !group.is_church) {
         return false
       }
-
-      if (selectedAgeRange !== "All Ages" && group.age_range !== selectedAgeRange && !group.is_church) {
+      if (selectedAgeRange !== "Todas Idades" && group.age_range !== selectedAgeRange && !group.is_church) {
         return false
       }
-
       return true
     })
   }, [groups, searchQuery, selectedCategory, selectedGender, selectedAgeRange])
@@ -69,11 +67,19 @@ export function HomeClient({ initialGroups, user, googleMapsApiKey }: HomeClient
     setSelectedGroup(updatedGroup)
   }
 
-  // Management view
+  // Verificar permissão de gerenciamento
+  const canManageGroup = (group: SmallGroup) => {
+    if (!profile) return false
+    if (profile.role === "admin") return true
+    if (profile.role === "leader" && profile.group_id === group.id) return true
+    return false
+  }
+
   if (managingGroup) {
     return (
       <ManagementDashboard
         group={managingGroup}
+        profile={profile}
         onBack={() => {
           setManagingGroup(null)
           setSelectedGroup(managingGroup)
@@ -85,7 +91,10 @@ export function HomeClient({ initialGroups, user, googleMapsApiKey }: HomeClient
 
   return (
     <div className="h-screen flex flex-col">
-      <Header user={user} />
+      <Header user={user} profile={profile} />
+
+      {/* Avisos */}
+      {announcements.length > 0 && <AnnouncementsBanner announcements={announcements} />}
 
       <FilterBar
         searchQuery={searchQuery}
@@ -99,17 +108,14 @@ export function HomeClient({ initialGroups, user, googleMapsApiKey }: HomeClient
       />
 
       <div className="flex-1 flex overflow-hidden pb-16 lg:pb-0">
-        {/* Left Sidebar - Groups List (Desktop) */}
         <div className="w-80 border-r border-border bg-card hidden lg:block">
           <GroupsList groups={filteredGroups} selectedGroup={selectedGroup} onSelectGroup={handleSelectGroup} />
         </div>
 
-        {/* Mobile List View */}
         <div className={`${mobileView === "list" ? "block" : "hidden"} lg:hidden w-full overflow-y-auto`}>
           <GroupsList groups={filteredGroups} selectedGroup={selectedGroup} onSelectGroup={handleSelectGroup} />
         </div>
 
-        {/* Main Content - Map */}
         <div className={`${mobileView === "map" ? "flex-1" : "hidden"} lg:flex-1 relative p-2 md:p-4`}>
           {googleMapsApiKey ? (
             <GoogleMap
@@ -123,19 +129,17 @@ export function HomeClient({ initialGroups, user, googleMapsApiKey }: HomeClient
           )}
         </div>
 
-        {/* Right Sidebar - Details Panel (Desktop) */}
         {selectedGroup && (
           <div className="w-96 hidden md:block">
             <GroupDetailsPanel
               group={selectedGroup}
               onClose={() => setSelectedGroup(null)}
               onManage={() => setManagingGroup(selectedGroup)}
-              canManage={!!user}
+              canManage={canManageGroup(selectedGroup)}
             />
           </div>
         )}
 
-        {/* Mobile Details Sheet */}
         {selectedGroup && (
           <Sheet open={!!selectedGroup} onOpenChange={() => setSelectedGroup(null)}>
             <SheetContent side="bottom" className="h-[85vh] md:hidden">
@@ -143,15 +147,14 @@ export function HomeClient({ initialGroups, user, googleMapsApiKey }: HomeClient
                 group={selectedGroup}
                 onClose={() => setSelectedGroup(null)}
                 onManage={() => setManagingGroup(selectedGroup)}
-                canManage={!!user}
+                canManage={canManageGroup(selectedGroup)}
               />
             </SheetContent>
           </Sheet>
         )}
       </div>
 
-      {/* Mobile Navigation */}
-      <MobileNav activeView={mobileView} onViewChange={setMobileView} hasUser={!!user} />
+      <MobileNav activeView={mobileView} onViewChange={setMobileView} profile={profile} />
     </div>
   )
 }

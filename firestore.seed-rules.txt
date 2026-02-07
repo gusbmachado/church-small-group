@@ -1,0 +1,18 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ⚠️ REGRAS TEMPORÁRIAS PARA SEED - USE APENAS EM DESENVOLVIMENTO
+    // ⚠️ NUNCA USE ESSAS REGRAS EM PRODUÇÃO!
+    // 
+    // Para fazer o seed:
+    // 1. Copie essas regras para o Firebase Console (Firestore Database > Rules)
+    // 2. Publique as regras
+    // 3. Execute: pnpm seed
+    // 4. Restaure as regras de produção (copie de firestore.rules)
+    
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

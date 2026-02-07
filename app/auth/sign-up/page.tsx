@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { getFirebaseAuth } from "@/lib/firebase/client"
-import { createUserWithEmailAndPassword } from "firebase/auth"
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+import { createUserProfile } from "@/lib/firebase/firestore"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,6 +14,7 @@ import { useState } from "react"
 import { Church } from "lucide-react"
 
 export default function SignUpPage() {
+  const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [repeatPassword, setRepeatPassword] = useState("")
@@ -23,21 +24,30 @@ export default function SignUpPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const auth = getFirebaseAuth()
     setIsLoading(true)
     setError(null)
 
     if (password !== repeatPassword) {
-      setError("Passwords do not match")
+      setError("As senhas não correspondem")
+      setIsLoading(false)
+      return
+    }
+
+    if (!name.trim()) {
+      setError("Por favor, informe seu nome")
       setIsLoading(false)
       return
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password)
-      router.push("/auth/sign-up-success")
+      const auth = getFirebaseAuth()
+      const credential = await createUserWithEmailAndPassword(auth, email, password)
+      await updateProfile(credential.user, { displayName: name })
+      // Criar perfil no Firestore com role "member" por padrão
+      await createUserProfile(credential.user.uid, email, name, "member")
+      router.push("/")
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred")
+      setError(error instanceof Error ? error.message : "Ocorreu um erro")
     } finally {
       setIsLoading(false)
     }
@@ -52,31 +62,42 @@ export default function SignUpPage() {
               <Church className="w-7 h-7 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-foreground">Small Groups Manager</h1>
-              <p className="text-xs text-muted-foreground">Church Community Platform</p>
+              <h1 className="text-xl font-semibold text-foreground">Pequenos Grupos</h1>
+              <p className="text-xs text-muted-foreground">Plataforma da Igreja</p>
             </div>
           </div>
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Sign up</CardTitle>
-              <CardDescription>Create an account to manage groups</CardDescription>
+              <CardTitle className="text-2xl">Criar Conta</CardTitle>
+              <CardDescription>Registre-se para participar da comunidade</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSignUp}>
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Nome Completo</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Seu nome"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </div>
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="admin@church.org"
+                      placeholder="seu@email.com"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">Senha</Label>
                     <Input
                       id="password"
                       type="password"
@@ -86,7 +107,7 @@ export default function SignUpPage() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="repeat-password">Repeat Password</Label>
+                    <Label htmlFor="repeat-password">Repetir Senha</Label>
                     <Input
                       id="repeat-password"
                       type="password"
@@ -97,13 +118,18 @@ export default function SignUpPage() {
                   </div>
                   {error && <p className="text-sm text-destructive">{error}</p>}
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Sign up"}
+                    {isLoading ? "Criando conta..." : "Criar Conta"}
                   </Button>
                 </div>
                 <div className="mt-4 text-center text-sm">
-                  Already have an account?{" "}
+                  Já tem uma conta?{" "}
                   <Link href="/auth/login" className="underline underline-offset-4 text-primary">
-                    Login
+                    Entrar
+                  </Link>
+                </div>
+                <div className="mt-2 text-center">
+                  <Link href="/" className="text-sm text-muted-foreground hover:underline">
+                    Continuar como visitante
                   </Link>
                 </div>
               </form>

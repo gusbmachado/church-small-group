@@ -64,7 +64,7 @@ export function GroupDetailsPanel({ group, onClose, onManage, canManage }: Group
           <Separator />
 
           <div>
-            <h3 className="text-sm font-semibold text-card-foreground mb-3">Leader</h3>
+            <h3 className="text-sm font-semibold text-card-foreground mb-3">Líder</h3>
             <div className="p-3 bg-secondary/50 rounded-lg space-y-2">
               <p className="font-medium text-card-foreground">{group.leader}</p>
               {group.leader_phone && (
@@ -85,15 +85,15 @@ export function GroupDetailsPanel({ group, onClose, onManage, canManage }: Group
           <Separator />
 
           <div>
-            <h3 className="text-sm font-semibold text-card-foreground mb-3">Quick Stats</h3>
+            <h3 className="text-sm font-semibold text-card-foreground mb-3">Resumo</h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3 bg-secondary/50 rounded-lg text-center">
                 <p className="text-2xl font-bold text-primary">{group.members?.length || 0}</p>
-                <p className="text-xs text-muted-foreground">Members</p>
+                <p className="text-xs text-muted-foreground">Membros</p>
               </div>
               <div className="p-3 bg-secondary/50 rounded-lg text-center">
                 <p className="text-2xl font-bold text-primary">{attendanceRate}%</p>
-                <p className="text-xs text-muted-foreground">Avg Attendance</p>
+                <p className="text-xs text-muted-foreground">Presença Média</p>
               </div>
             </div>
           </div>
@@ -103,7 +103,7 @@ export function GroupDetailsPanel({ group, onClose, onManage, canManage }: Group
           {group.current_lesson && (
             <>
               <div>
-                <h3 className="text-sm font-semibold text-card-foreground mb-3">Current Lesson</h3>
+                <h3 className="text-sm font-semibold text-card-foreground mb-3">Lição Atual</h3>
                 <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-primary" />
@@ -118,7 +118,7 @@ export function GroupDetailsPanel({ group, onClose, onManage, canManage }: Group
           {group.roles && group.roles.length > 0 && (
             <>
               <div>
-                <h3 className="text-sm font-semibold text-card-foreground mb-3">Team Roles</h3>
+                <h3 className="text-sm font-semibold text-card-foreground mb-3">Funções</h3>
                 <div className="space-y-2">
                   {group.roles.map((role) => (
                     <div key={role.id} className="flex justify-between items-center p-2 bg-secondary/30 rounded">
@@ -134,7 +134,7 @@ export function GroupDetailsPanel({ group, onClose, onManage, canManage }: Group
 
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-card-foreground">Members</h3>
+              <h3 className="text-sm font-semibold text-card-foreground">Membros</h3>
               <span className="text-xs text-muted-foreground">{group.members?.length || 0} total</span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -163,11 +163,11 @@ export function GroupDetailsPanel({ group, onClose, onManage, canManage }: Group
       <div className="p-4 border-t border-border">
         {canManage ? (
           <Button className="w-full" onClick={onManage}>
-            Manage Group
+            Gerenciar Grupo
           </Button>
         ) : (
           <Button className="w-full bg-transparent" variant="outline" asChild>
-            <a href="/auth/login">Login to Manage</a>
+            <a href="/auth/login">Faça login para gerenciar</a>
           </Button>
         )}
       </div>
