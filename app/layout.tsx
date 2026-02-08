@@ -11,7 +11,7 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Gerenciador de Pequenos Grupos | Igreja",
+  title: "Cenacle",
   description: "Plataforma de gerenciamento de pequenos grupos da igreja com mapas, presença, caronas e mais.",
   generator: "Next.js",
   applicationName: "Pequenos Grupos",

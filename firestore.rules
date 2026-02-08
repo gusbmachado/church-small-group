@@ -1,49 +1,28 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // User profiles - authenticated users can read/write their own profile
-    match /user_profiles/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+    // Qualquer pessoa pode ler grupos (são públicos)
+    match /groups/{groupId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+      
+      match /{subcollection}/{docId} {
+        allow read: if true;
+        allow write: if request.auth != null;
+      }
     }
     
-    // Small groups - all authenticated users can read
-    // Only admins and group leaders can create/update/delete
-    match /small_groups/{groupId} {
+    // Perfis de usuário
+    match /users/{userId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && (
-        get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin'
-      );
-      allow update, delete: if request.auth != null && (
-        get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin' ||
-        get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'leader'
-      );
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null;
     }
     
-    // Members - authenticated users can read, leaders and admins can write
-    match /members/{memberId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && (
-        get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin' ||
-        get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'leader'
-      );
-    }
-    
-    // Announcements - all can read, only admins can write
-    match /announcements/{announcementId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && 
-        get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin';
-    }
-    
-    // Group roles, attendance, lessons, carpools, prayer requests, sermons
-    match /{document=**} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && (
-        get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'admin' ||
-        get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data.role == 'leader'
-      );
+    // Avisos - todos leem, admin escreve
+    match /announcements/{annId} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
   }
 }
